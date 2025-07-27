@@ -1,4 +1,6 @@
 from manim import *
+from manim.utils.space_ops import angle_of_vector
+import numpy as np
 
 class HelloWorldOT(Scene):
     def construct(self):
@@ -198,7 +200,7 @@ class DiamondDiagram(Scene):
         arrow_a = Arrow(top_point, right_point, buff=0)
 
         # 3. Create the labels for the arrows
-        label_b = Text("b", color="#903F32").move_to(arrow_b.get_center() + UL * 0.3)
+        label_b = Text("b", color="#2366D1").move_to(arrow_b.get_center() + UL * 0.3)
         label_a = Text("a", color="#903F32").move_to(arrow_a.get_center() + UR * 0.3)
 
         # 4. Animate top part
@@ -206,27 +208,45 @@ class DiamondDiagram(Scene):
         self.play(Write(label_b), Write(label_a))
         self.wait(0.5)
 
-        # 5. Blink origin dot
+        # 5. Make origin dot appear briefly and disappear
         origin_dot = Dot(top_point, color=YELLOW)
-        self.play(Create(origin_dot))
-        self.play(Blink(origin_dot, times=1, run_time=0.75))
-        self.play(FadeOut(origin_dot))
+        self.play(Create(origin_dot), run_time=0.25)
+        self.play(FadeOut(origin_dot), run_time=0.25)
         self.wait(0.5)
 
-        # 6. Draw bottom part of the diagram
-        dotted_line_1 = DashedLine(left_point, bottom_point)
-        dotted_line_2 = DashedLine(right_point, bottom_point)
-        self.play(Create(dotted_line_1), Create(dotted_line_2))
-        self.wait(0.5)
-
-        # Red crossed arrows
-        arrow_a_prime = Arrow(arrow_a.get_center(), dotted_line_1.get_center(), buff=0, color="#D64B3D")
-        arrow_b_prime = Arrow(arrow_b.get_center(), dotted_line_2.get_center(), buff=0, color="#D64B3D")
-        self.play(GrowArrow(arrow_a_prime), GrowArrow(arrow_b_prime))
-        
-        # Labels for the new arrows
+        # 6. Prepare all bottom objects but DO NOT add or animate them yet!
+        dashed_line_1 = DashedLine(left_point, bottom_point, color="#444444")
+        dashed_line_2 = DashedLine(right_point, bottom_point, color="#444444")
+        arrow_head_1 = Arrow(
+            left_point, bottom_point,
+            color="#444444",
+            stroke_opacity=0,
+            tip_length=0.35,
+            buff=0
+        )
+        arrow_head_2 = Arrow(
+            right_point, bottom_point,
+            color="#444444",
+            stroke_opacity=0,
+            tip_length=0.35,
+            buff=0
+        )
+        arrow_a_prime = Arrow(arrow_a.get_center(), dashed_line_1.get_center(), buff=0, color="#D64B3D")
+        arrow_b_prime = Arrow(arrow_b.get_center(), dashed_line_2.get_center(), buff=0, color="#2366D1")
         label_a_prime = Text("a'", color="#D64B3D").next_to(arrow_a_prime.get_end(), DL, buff=0.15)
-        label_b_prime = Text("b'", color="#D64B3D").next_to(arrow_b_prime.get_end(), DR, buff=0.15)
-        self.play(Write(label_a_prime), Write(label_b_prime))
+        label_b_prime = Text("b'", color="#2366D1").next_to(arrow_b_prime.get_end(), DR, buff=0.15)
 
-        self.wait(3)
+        # 7. Animate all at once
+        self.play(
+            FadeIn(dashed_line_1),
+            FadeIn(dashed_line_2),
+            FadeIn(arrow_head_1),
+            FadeIn(arrow_head_2),
+            GrowArrow(arrow_a_prime),
+            GrowArrow(arrow_b_prime),
+            Write(label_a_prime),
+            Write(label_b_prime),
+            run_time=1.2,
+            rate_func=smooth
+        )
+        self.wait(0.5)
